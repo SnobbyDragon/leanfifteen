@@ -12,11 +12,14 @@ begin
   unfold game,
   apply can_slide_to.can_slide_to_one,
   use [bc, bd],
-  sorry
+  split,
+  split; dec_trivial,
+  sorry -- oops
 end
 
 example : game puzzle_1 :=
 begin
   start_game,
   slide_tile bc,
+  sorry
 end

@@ -13,7 +13,7 @@ section defenestration -- definitions
 -- why in the world did I use an enumerated type instead of fin 4 × fin 4?
 -- unfortunately this way is not easily scalable to other dimensions
 -- at least it looks pretty :)
-@[derive decidable_eq]
+@[derive decidable_eq, derive has_reflect]
 inductive tile : Type
 | aa | ab | ac | ad
 | ba | bb | bc | bd

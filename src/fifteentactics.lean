@@ -23,16 +23,16 @@ do { let adj := get_adjacent t,
      return e
 } <|> tactic.fail "all adjacent tiles are non-empty !"
 
+-- TODO: DO NOT USE can_slide_to.can_slide_to_one
 meta def slide_tile (t : tile) : tactic unit :=
 do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
      `[apply can_slide_to.can_slide_to_one],
      p ← (eval_expr position) p₁,
      e ← get_adj_empty t p,
-     tactic.trace $ "The empty tile is " ++ to_string e,
-     tactic.target >>= tactic.trace,
-     `[use [t, e]]
+    --  tactic.trace $ "Want to slide " ++ to_string t ++ " to " ++ to_string e,
+    --  tactic.target >>= tactic.trace,
+     tactic.interactive.use [pexpr.of_expr (reflect t), pexpr.of_expr (reflect e)],
+     `[split, split; dec_trivial]
 } <|> tactic.fail "failed to slide tile :("
-
-
 
 end fifteentactics
