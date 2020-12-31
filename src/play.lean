@@ -1,4 +1,4 @@
-import fifteen puzzles fifteentactics
+import fifteen puzzles fifteentactics fifteeninteractive
 
 open fifteen fifteen.tile fifteen.position
 open puzzles fifteentactics
@@ -10,7 +10,7 @@ open puzzles fifteentactics
 example : game puzzle_1 :=
 begin
   unfold game,
-  apply can_slide_to.can_slide_to_one,
+  apply slide_one_step,
   use [bc, bd],
   split,
   split; dec_trivial,
@@ -18,8 +18,6 @@ begin
 end
 
 example : game puzzle_1 :=
-begin
-  start_game,
-  slide_tile bc,
+begin [fifteen_tactic']
   sorry
 end
