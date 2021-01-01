@@ -31,7 +31,6 @@ namespace fifteen_tactic
 
 end fifteen_tactic
 
-
 -- with clicking
 meta def fifteen_tactic' := tactic
 
@@ -50,7 +49,8 @@ namespace fifteen_tactic'
 
   meta instance : interactive.executor fifteen_tactic' :=
   { config_type := unit,
-    execute_with := λ n tac, tac
+    execute_with := λ n tac, tac >> fifteentactics.finish_game
+    -- Thanks to Mario Carneiro :) will auto finish game now
   }
 
 end fifteen_tactic'

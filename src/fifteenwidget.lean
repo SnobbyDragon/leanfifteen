@@ -129,9 +129,12 @@ do tactic.save_widget p (widget.tc.to_component fifteen_component)
 
 end static
 
+/-
+  Super thank you to Ed Ayers!
+  This is basically a copy of his interactive Hanoi widget.
+-/
 section interactive
 -- TODO: make a sliding animation :)
--- TODO: is it possible to check for correctness before insert_text / sliding?
 
 meta def tile_html' (t : tile) (p : position) : html tile :=
 h "div" [

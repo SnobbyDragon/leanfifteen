@@ -67,12 +67,16 @@ def get_adjacent : tile → list tile
 
 def is_adjacent (t₁ t₂ : tile) : Prop := t₁ ∈ (get_adjacent t₂)
 
-@[derive decidable_eq]
-structure position := 
+@[ext] structure position := 
 (map : tile → fin 16)
 -- (bij : function.bijective map)
 -- don't know if bijective is helpful,
 -- but it makes things more complicated so taking it out for now
+
+-- Mario Carneiro's Magic!
+-- I still don't know what @[ext] and this instance does...
+instance : decidable_eq position :=
+λ a b, decidable_of_iff' _ (position.ext_iff _ _)
 
 -- zero denotes the hole
 @[derive decidable]
@@ -135,6 +139,10 @@ begin
   { refl },
   exact h₂,
 end
+
+-- more of Mario Carneiro's Magic
+lemma can_slide_to.of_eq : ∀ {p₁ p₂ : position} (h : p₁ = p₂), can_slide_to p₁ p₂
+| p _ rfl := can_slide_to.self p
 
 end limabeans
 

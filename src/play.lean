@@ -25,10 +25,7 @@ end
 example : game easy_cheesy :=
 begin
   slide_tile dd,
-  have H : (slide dd dc easy_cheesy).map = goal_position.map := by exact dec_trivial,
-  have H' : (slide dd dc easy_cheesy) = goal_position := by tauto,
-  rw H',
-  apply can_slide_to.self goal_position,
+  finish_game,
 end
 
 example : game easy_cheesy :=

@@ -7,8 +7,7 @@ namespace fifteentactics
 
 -- just unfolds game
 meta def start_game : tactic unit :=
-do { dunfold_target [``game]
-} <|> tactic.fail "not a game !"
+do dunfold_target [``game] <|> tactic.fail "not a game !"
 
 meta def get_start_position : tactic position :=
 do { start_game,
@@ -23,11 +22,10 @@ do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
      return p
 } <|> get_start_position
 
--- TODO follow easy_cheesy example
+-- Thanks to Mario Carneiro :)
 meta def finish_game : tactic unit :=
-do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
-     «have» `H ``(%%(p₁) = goal_position.map) ``(by dec_trivial),
-     tactic.skip
+do { applyc ``can_slide_to.of_eq,
+     tactic.exact_dec_trivial
 } <|> tactic.fail "we are not done !"
 
 -- given a list of tiles, finds the hole
