@@ -25,8 +25,8 @@ do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
 
 -- TODO follow easy_cheesy example
 meta def finish_game : tactic unit :=
-do { p ← get_position,
-     «have» `H ``(%%p.map = goal_position.map) ``(by dec_trivial),
+do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
+     «have» `H ``(%%(p₁) = goal_position.map) ``(by dec_trivial),
      tactic.skip
 } <|> tactic.fail "we are not done !"
 
