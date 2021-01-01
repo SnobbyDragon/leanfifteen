@@ -67,7 +67,7 @@ def get_adjacent : tile → list tile
 
 def is_adjacent (t₁ t₂ : tile) : Prop := t₁ ∈ (get_adjacent t₂)
 
--- TODO: define equality so we can close our goal using self
+@[derive decidable_eq]
 structure position := 
 (map : tile → fin 16)
 -- (bij : function.bijective map)
@@ -81,13 +81,13 @@ def hole (t : tile) (p : position) : Prop := p.map t = 0
 def valid_slide' (t : tile) (p : position) : Prop :=
 ∃ t' ∈ get_adjacent t, hole t' p
 
-def valid_slide (t e : tile) (p : position) : Prop :=
-e ∈ get_adjacent t ∧ hole e p
+def valid_slide (t h : tile) (p : position) : Prop :=
+h ∈ get_adjacent t ∧ hole h p
 
-def slide (t e : tile) (p : position) : position :=
+def slide (t h : tile) (p : position) : position :=
 ⟨ λ t',
-  if t' = t then p.map e
-  else if t' = e then p.map t
+  if t' = t then p.map h
+  else if t' = h then p.map t
   else p.map t'
 ⟩
 

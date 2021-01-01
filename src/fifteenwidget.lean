@@ -162,23 +162,31 @@ meta inductive fifteen_action
 open fifteen_action
 
 meta def fifteen_view : fifteen_state → list (html fifteen_action)
-| s := [
-  widget.html.map_action click_tile $ position_html' s.pos,
-  button "yeehaw" (fifteen_action.commit),
-  button "aw hell naw" (fifteen_action.reset)
-  ]
+| s := [widget.html.map_action click_tile $ position_html' s.pos]
+  ++ (if s.initpos = goal_position then [widget_override.goals_accomplished_message]
+  else [button "yeehaw" (fifteen_action.commit), button "aw hell naw" (fifteen_action.reset)])
 
 meta def fifteen_update : fifteen_state → fifteen_action → fifteen_state × option widget.effects
-| s (click_tile t) := ({slides := s.slides ++ [t], initpos := s.initpos, inithole := s.inithole, pos := slide t s.hole s.pos, hole := t} , none)
-| s commit := (s, some [effect.insert_text $ string.join $ s.slides.map (λ t, "slide_tile " ++ to_string t ++ ",\n  ")])
+| s (click_tile t) :=
+  if t ∈ get_adjacent s.hole -- checks if the move is valid
+  then ({slides := s.slides ++ [t], initpos := s.initpos, inithole := s.inithole, pos := slide t s.hole s.pos, hole := t}, none)
+  else (s, none)
+| s commit := (s, some [effect.insert_text $ string.join $ s.slides.map (λ t, "slide_tile " ++ to_string t ++ ",\n")])
 | s reset := ({slides := [], initpos := s.initpos, inithole := s.inithole, pos := s.initpos, hole := s.inithole}, none)
+
+meta def solved' : tactic fifteen_state :=
+do { gs ← get_goals,
+     if gs.length = 0
+     then return {slides := [], initpos := goal_position, inithole := dd, pos := goal_position, hole := dd}
+     else tactic.fail "there are still goals !"
+} <|> tactic.fail "bad vibes"
 
 meta def fifteen_init : unit → tactic fifteen_state
 | () := do {
   p ← get_position,
   h ← get_hole p,
   return {slides := [], initpos := p, inithole := h, pos := p, hole := h}
-}
+} <|> solved'
 
 meta def fifteen_component' : tc unit empty :=
 component.ignore_action

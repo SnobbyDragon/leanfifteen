@@ -1,19 +1,14 @@
 import fifteen
 
 open fifteen fifteen.tile fifteen.position
-open tactic
+open tactic tactic.interactive («have»)
 
 namespace fifteentactics
 
 -- just unfolds game
 meta def start_game : tactic unit :=
-do {  dunfold_target [``game]
+do { dunfold_target [``game]
 } <|> tactic.fail "not a game !"
-
--- TODO: accomplish the goal if we equal goal_position
-meta def finish_game : tactic unit :=
-do { tactic.skip
-}
 
 meta def get_start_position : tactic position :=
 do { start_game,
@@ -27,6 +22,13 @@ do { `(can_slide_to %%p₁ %%p₂) ← tactic.target,
      p ← (eval_expr position) p₁,
      return p
 } <|> get_start_position
+
+-- TODO follow easy_cheesy example
+meta def finish_game : tactic unit :=
+do { p ← get_position,
+     «have» `H ``(%%p.map = goal_position.map) ``(by dec_trivial),
+     tactic.skip
+} <|> tactic.fail "we are not done !"
 
 -- given a list of tiles, finds the hole
 meta def find_hole (p : position) : list tile → tactic tile
