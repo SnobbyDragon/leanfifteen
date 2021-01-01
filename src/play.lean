@@ -19,5 +19,12 @@ end
 
 example : game puzzle_1 :=
 begin [fifteen_tactic']
+	
+end
+
+example : game easy_cheesy :=
+begin --[fifteen_tactic]
+  slide_tile dd,
+  have h : slide dd dc easy_cheesy = goal_position,
   sorry
 end

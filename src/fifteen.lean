@@ -67,6 +67,7 @@ def get_adjacent : tile → list tile
 
 def is_adjacent (t₁ t₂ : tile) : Prop := t₁ ∈ (get_adjacent t₂)
 
+-- TODO: define equality so we can close our goal using self
 structure position := 
 (map : tile → fin 16)
 -- (bij : function.bijective map)
@@ -108,6 +109,7 @@ inductive can_slide_to : position → position → Prop
 | one : ∀ (p₁ p₂ : position), (∃ (t e : tile), (valid_slide t e p₁) ∧ (slide t e p₁) = p₂) → can_slide_to p₁ p₂
 | trans : ∀ (p₁ p₂ p₃ : position), can_slide_to p₁ p₂ → can_slide_to p₂ p₃ → can_slide_to p₁ p₃
 
+-- we are assuming start is a solvable position
 def game (start : position) := can_slide_to start goal_position
 
 end defenestration
@@ -117,7 +119,9 @@ section limabeans -- lemmas
 -- symmetry for adjacency
 lemma sym_adj (t₁ t₂ : tile) : is_adjacent t₁ t₂ ↔ is_adjacent t₂ t₁ :=
 begin
-  split; intros h; cases t₁; cases t₂; try {exact h}; sorry
+  split; intros h; cases t₁; cases t₂; try {exact h},
+  all_goals {unfold is_adjacent at *; unfold get_adjacent at *; try {dec_trivial} },
+  all_goals { exfalso; finish },
 end
 
 lemma slide_one_step (p₁ p₂ : position) : (∃ (t e : tile), (valid_slide t e p₁) ∧ can_slide_to (slide t e p₁) p₂) → can_slide_to p₁ p₂ :=

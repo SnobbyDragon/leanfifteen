@@ -69,25 +69,36 @@ def tile_border_widths' : tile → string
 -- TODO: need higher outset near empty tile; need to calculate edges bordering empty tile
 def tile_border_widths (t : tile) (p : position) : string := tile_border_widths' t
 
-meta def tile_text (t : tile) (p : position) : string :=
+def tile_text (t : tile) (p : position) : string :=
 if hole t p then "" else to_string $ p.map t
+
+def tile_html_style (t : tile) (p : position) : list (string × string) :=
+[
+  ("background-color", to_string $ tile_colors t p),
+  ("width", "50px"),
+  ("height", "50px"),
+  ("border-color", to_string white),
+  ("border-style", tile_border_styles t p),
+  ("border-width", tile_border_widths t p),
+  ("text-align", "center"), -- horizontally center text
+  ("line-height", "45px"), -- vertically center text
+  ("color", to_string white),
+  ("font", "24px Comic Sans MS") -- THE BEST FONT
+]
+
+def position_html_style (p : position) : list (string × string) :=
+[
+  ("display", "grid"),
+  ("grid-template", "repeat(4, 1fr) / repeat(4, 1fr)"),
+  ("width", "200px"),
+  ("margin", "10px")
+]
 
 section static
 
 meta def tile_html (t : tile) (p : position) : html empty :=
 h "div" [
-  style [
-    ("background-color", to_string $ tile_colors t p),
-    ("width", "50px"),
-    ("height", "50px"),
-    ("border-color", to_string white),
-    ("border-style", tile_border_styles t p),
-    ("border-width", tile_border_widths t p),
-    ("text-align", "center"),
-    ("line-height", "45px"),
-    ("color", to_string white),
-    ("font", "24px Comic Sans MS") -- THE BEST FONT
-  ]
+  style $ tile_html_style t p
 ] [tile_text t p]
 
 meta def tiles_html (p : position) : list (html empty) :=
@@ -95,11 +106,7 @@ list.map (λ t : tile, tile_html t p) tiles_list
 
 meta def position_html (p : position) : html empty :=
 h "div" [
-  style [
-    ("display", "grid"),
-    ("grid-template", "repeat(4, 1fr) / repeat(4, 1fr)"),
-    ("width", "200px")
-  ]
+  style $ position_html_style p
 ] (tiles_html p)
 
 #html position_html goal_position
@@ -123,21 +130,12 @@ do tactic.save_widget p (widget.tc.to_component fifteen_component)
 end static
 
 section interactive
+-- TODO: make a sliding animation :)
+-- TODO: is it possible to check for correctness before insert_text / sliding?
 
 meta def tile_html' (t : tile) (p : position) : html tile :=
 h "div" [
-  style [
-    ("background-color", to_string $ tile_colors t p),
-    ("width", "50px"),
-    ("height", "50px"),
-    ("border-color", to_string white),
-    ("border-style", tile_border_styles t p),
-    ("border-width", tile_border_widths t p),
-    ("text-align", "center"),
-    ("line-height", "45px"),
-    ("color", to_string white),
-    ("font", "24px Comic Sans MS") -- THE BEST FONT
-  ],
+  style $ tile_html_style t p,
   on_click (λ x, t)
 ] [tile_text t p]
 
@@ -146,31 +144,46 @@ list.map (λ t : tile, widget.html.map_action (λ t', t') (tile_html' t p)) tile
 
 meta def position_html' (p : position) : html tile :=
 h "div" [
-  style [
-    ("display", "grid"),
-    ("grid-template", "repeat(4, 1fr) / repeat(4, 1fr)"),
-    ("width", "200px")
-  ]
+  style $ position_html_style p
 ] (tiles_html' p)
+
+meta structure fifteen_state :=
+(slides : list (tile))
+(initpos : position)
+(inithole : tile)
+(pos : position)
+(hole : tile)
 
 meta inductive fifteen_action
 | click_tile (t : tile)
+| commit
+| reset
 
 open fifteen_action
 
-meta def fifteen_view : position → list (html fifteen_action)
-| p := [widget.html.map_action click_tile $ position_html' p]
+meta def fifteen_view : fifteen_state → list (html fifteen_action)
+| s := [
+  widget.html.map_action click_tile $ position_html' s.pos,
+  button "yeehaw" (fifteen_action.commit),
+  button "aw hell naw" (fifteen_action.reset)
+  ]
 
-meta def fifteen_update : position → fifteen_action → position × option widget.effects
-| p (click_tile t) := (p, some [effect.insert_text $ "slide_tile " ++ to_string t ++ ","])
+meta def fifteen_update : fifteen_state → fifteen_action → fifteen_state × option widget.effects
+| s (click_tile t) := ({slides := s.slides ++ [t], initpos := s.initpos, inithole := s.inithole, pos := slide t s.hole s.pos, hole := t} , none)
+| s commit := (s, some [effect.insert_text $ string.join $ s.slides.map (λ t, "slide_tile " ++ to_string t ++ ",\n  ")])
+| s reset := ({slides := [], initpos := s.initpos, inithole := s.inithole, pos := s.initpos, hole := s.inithole}, none)
 
-meta def fifteen_init : unit → tactic position
-| () := do get_position
+meta def fifteen_init : unit → tactic fifteen_state
+| () := do {
+  p ← get_position,
+  h ← get_hole p,
+  return {slides := [], initpos := p, inithole := h, pos := p, hole := h}
+}
 
 meta def fifteen_component' : tc unit empty :=
 component.ignore_action
 $ component.with_effects (λ _ e, e)
-$ tc.mk_simple fifteen_action position fifteen_init (λ _ p a, pure $ fifteen_update p a) (λ _ p, pure $ fifteen_view p)
+$ tc.mk_simple fifteen_action fifteen_state fifteen_init (λ _ s a, pure $ fifteen_update s a) (λ _ s, pure $ fifteen_view s)
 
 meta def fifteen_save_info' (p : pos) : tactic unit :=
 do tactic.save_widget p (widget.tc.to_component fifteen_component')
